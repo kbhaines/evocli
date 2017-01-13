@@ -6,11 +6,11 @@ setup(
     packages=['evocli'],
     include_package_data=True,
     install_requires=[
-        'click', 'evohomeclient'
+        'click', 'evohomeclient', 'pyyaml'
     ],
     entry_points={ 
         'console_scripts': [ 
-            'evocli = evocli.__main__:cli'
+            'evoc = evocli.__main__:cli'
             ]
         }
 )

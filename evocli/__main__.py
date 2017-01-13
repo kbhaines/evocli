@@ -1,13 +1,18 @@
 #!/usr/bin/env python
 #
+import os
+import sys
+
 from datetime import datetime
 from datetime import timedelta
+
+import yaml
+import click
+
 from evohomeclient2 import EvohomeClient
 from evocli.dummyclient import DummyClient
 
-import sys
 
-import click
 
 class CommandException(click.ClickException):
     pass
@@ -30,8 +35,6 @@ def hotwater_auto(client, state, duration_unused):
     hotwater.set_dhw_auto()
     
 @click.group()
-@click.option('--username', help='username')
-@click.option('--password', help='password')
 def cli():
     pass
 
@@ -80,8 +83,17 @@ def temps():
         name = 'WATER' if device['thermostat'] == 'DOMESTIC_HOT_WATER' else device['name']
         print '{} {} {}'.format(name, device['temp'], device['setpoint'])
 
-def get_client(user, password):
+def load_config_file():
+    config_file = os.path.expanduser('~/.evoc')
+    if not os.path.isfile(config_file):
+        raise CommandException('Config file ({}) not found'.format(config_file))
+    return yaml.load(open(config_file))
+
+def get_client():
+    config = load_config_file()
     #return DummyClient()
+    user = config['username']
+    password = config['password']
     return EvohomeClient(user, password)
 
 if __name__ == '__main__':
