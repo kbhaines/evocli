@@ -9,9 +9,7 @@ from datetime import timedelta
 import yaml
 import click
 
-from evohomeclient2 import EvohomeClient
-from evocli.dummyclient import DummyClient
-
+import clients
 
 class CommandException(click.ClickException):
     pass
@@ -30,6 +28,7 @@ def hotwater_on_off(client, state, duration_in_minutes=60):
         hotwater.set_dhw_off(until_time)
 
 def hotwater_auto(client, state, duration_unused):
+    client.set
     hotwater = client._get_single_heating_system().hotwater
     hotwater.set_dhw_auto()
     
@@ -48,39 +47,42 @@ def temperature_range_check(ctx, param, value):
 @click.option('--duration', type=int, help='Duration of override in minutes')
 def zone(zone, temperature, duration):
     try:
-        client = get_client()._get_single_heating_system()
         until = calculate_offset_time(duration)
-        client.zones[zone].set_temperature(temperature, until)
+        get_client().set_zone_temperature(zone, temperature, until)
     except KeyError:
         raise CommandException('Zone {} was not found'.format(zone))
 
+
+def handle_auto_hw(client, duration):
+    if duration:
+        raise CommandException('auto mode does not allow duration')
+    client.set_hotwater_auto()
 
 @cli.command()
 @click.argument('state')
 @click.option('--duration', type=int, help='Duration of override in minutes')
 def hotwater(state, duration):
+    client = get_client()
+    if state == 'auto':
+        handle_auto_hw(client, duration)
+        return
     states = { 
-        'on' : hotwater_on_off, 
-        'off': hotwater_on_off,
-        'auto': hotwater_auto 
+        'on' : client.set_hotwater_on, 
+        'off': client.set_hotwater_off,
         }
-    if state == 'auto' and duration:
-        raise CommandException('auto mode does not allow duration')
     if not state in states:
         raise CommandException('illegal state specified - {}'.format(state))
     if duration and (duration < 10 or duration > 24 * 60):
         raise CommandException('duration must be 10 to 1440 minutes')
-
-    client = get_client()
-    states[state](client, state, duration)
+    until = calculate_offset_time(duration)
+    states[state](until)
 
 @cli.command()
 def temps():
-    client = get_client()
-    temperatures = client._get_single_heating_system().temperatures()
-    for device in temperatures:
-        (name,setpoint) = ('WATER', '-') if device['thermostat'] == 'DOMESTIC_HOT_WATER' else (device['name'],device['setpoint'])
-        print '{} {} {}'.format(name, device['temp'], setpoint)
+    zone_temps = get_client().get_temperatures()
+    for device in zone_temps:
+        temp, setpoint = zone_temps[device]
+        print '{} {} {}'.format(device, temp, setpoint)
 
 def load_config_file():
     config_file = os.path.expanduser('~/.evoc')
@@ -93,7 +95,7 @@ def get_client():
     #return DummyClient()
     user = config['username']
     password = config['password']
-    return EvohomeClient(user, password)
+    return clients.EvohomeControlClient(user, password)
 
 if __name__ == '__main__':
     try:
