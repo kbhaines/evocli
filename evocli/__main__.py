@@ -13,7 +13,6 @@ from evohomeclient2 import EvohomeClient
 from evocli.dummyclient import DummyClient
 
 
-
 class CommandException(click.ClickException):
     pass
 
@@ -80,8 +79,8 @@ def temps():
     client = get_client()
     temperatures = client._get_single_heating_system().temperatures()
     for device in temperatures:
-        name = 'WATER' if device['thermostat'] == 'DOMESTIC_HOT_WATER' else device['name']
-        print '{} {} {}'.format(name, device['temp'], device['setpoint'])
+        (name,setpoint) = ('WATER', '-') if device['thermostat'] == 'DOMESTIC_HOT_WATER' else (device['name'],device['setpoint'])
+        print '{} {} {}'.format(name, device['temp'], setpoint)
 
 def load_config_file():
     config_file = os.path.expanduser('~/.evoc')
