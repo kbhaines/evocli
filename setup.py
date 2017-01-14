@@ -6,7 +6,7 @@ setup(
     packages=['evocli'],
     include_package_data=True,
     install_requires=[
-        'click', 'evohomeclient', 'pyyaml'
+        'click', 'evohomeclient', 'pyyaml', 'requests[security]'
     ],
     entry_points={ 
         'console_scripts': [ 
