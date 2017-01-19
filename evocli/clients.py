@@ -44,3 +44,4 @@ class EvohomeControlClient(HeatingControlClient):
                     if device['thermostat'] == 'DOMESTIC_HOT_WATER' \
                     else (device['name'],device['setpoint'])
             results[name] = (device['temp'], setpoint)
+        return results

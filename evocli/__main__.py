@@ -58,8 +58,12 @@ def handle_auto_hw(client, duration):
         raise CommandException('auto mode does not allow duration')
     client.set_hotwater_auto()
 
+def hw_mode_check(ctx, param, value):
+    if not value in ['on', 'off', 'auto']:
+        raise CommandException('Invalid mode')
+
 @cli.command()
-@click.argument('state')
+@click.argument('state', callback=hw_mode_check)
 @click.option('--duration', type=int, help='Duration of override in minutes')
 def hotwater(state, duration):
     client = get_client()
