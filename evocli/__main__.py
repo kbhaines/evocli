@@ -55,13 +55,16 @@ def temperature_range_check(ctx, param, value):
         raise click.BadParameter('temperature must be 0 - 30 degrees')
     return value
 
+def check_range(val, low, high):
+    if val < low or val > high: raise Exception()
+
 def check_and_convert_hh_mm(ctx, param, until):
     if until==None:
         return
     try:
         [hours, minutes] = [int(t) for t in until.split(':')]
-        assert hours >= 0 and hours < 24
-        assert minutes >= 0 and minutes < 60
+        check_range(hours, 0, 23)
+        check_range(minutes, 0, 59)
         return hours, minutes
     except:
         raise CommandException('Until time must be HH:MM format, where HH=0 to 23 and MM=0 to 59')
