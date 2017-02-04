@@ -25,7 +25,11 @@ class EvohomeControlClient(HeatingControlClient):
         self._evohome = EvohomeClient(username, password)._get_single_heating_system()
 
     def set_zone_temperature(self, zone_id, temperature, until=None):
-        self._evohome.zones[zone_id].set_temperature(temperature, until)
+        zone = self._evohome.zones[zone_id]
+        if temperature:
+            zone.set_temperature(temperature, until)
+        else:
+            zone.cancel_temp_override(zone_id)
 
     def set_hotwater_on(self, until=None):
         self._evohome.hotwater.set_dhw_on(until)

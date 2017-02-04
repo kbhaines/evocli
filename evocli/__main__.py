@@ -51,10 +51,15 @@ def get_until_time(duration, until):
     return until_time
 
 def temperature_range_check(ctx, param, value):
-    if value < 0.0 or value > 30.0:
-        raise click.BadParameter('temperature must be 0 - 30 degrees')
-    return value
-
+    if value == 'schedule':
+        return None
+    try:
+        value = float(value)
+        if value < 0.0 or value > 30.0:
+            raise click.BadParameter('temperature must be 0 - 30 degrees')
+        return value
+    except ValueError:
+        raise click.BadParameter('temperature must be a number, or \'scheduled\'')
 
 def check_and_convert_hh_mm(ctx, param, until):
 
@@ -78,10 +83,12 @@ def cli():
 
 @cli.command()
 @click.argument('zone')
-@click.argument('temperature', callback=temperature_range_check, type=float)
+@click.argument('temperature', callback=temperature_range_check)
 @click.option('--duration', type=int, help='Duration of override in minutes')
 @click.option('--until', callback=check_and_convert_hh_mm, help='Local time in HH:MM to override until')
 def zone(zone, temperature, duration, until):
+    if temperature == None and (duration != None or until != None):
+        raise CommandException('cannot specify duration when asking to follow schedule')
     try:
         until_time = get_until_time(duration, until)
         get_client().set_zone_temperature(zone, temperature, until_time)
