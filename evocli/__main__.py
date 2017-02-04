@@ -55,10 +55,12 @@ def temperature_range_check(ctx, param, value):
         raise click.BadParameter('temperature must be 0 - 30 degrees')
     return value
 
-def check_range(val, low, high):
-    if val < low or val > high: raise Exception()
 
 def check_and_convert_hh_mm(ctx, param, until):
+
+    def check_range(val, low, high):
+        if val < low or val > high: raise Exception()
+
     if until==None:
         return
     try:
