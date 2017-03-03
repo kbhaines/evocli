@@ -20,7 +20,6 @@ def load_config_file():
 
 def get_client():
     config = load_config_file()
-    return clients.HeatingControlClient()
     user = config['username']
     password = config['password']
     return clients.EvohomeControlClient(user, password)
