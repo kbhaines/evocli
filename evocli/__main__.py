@@ -86,7 +86,7 @@ def cli():
 @click.option('--duration', type=int, help='Duration of override in minutes')
 @click.option('--until', callback=check_and_convert_hh_mm, help='Local time in HH:MM to override until')
 def zone(zone, temperature, duration, until):
-    if temperature == None and (duration != None or until != None):
+    if temperature == 'auto' and (duration != None or until != None):
         raise CommandException('cannot specify duration in \'auto\' mode')
     try:
         until_time = get_until_time(duration, until)
@@ -138,11 +138,15 @@ def hotwater(state, duration, until):
 
 
 @cli.command()
-def temps():
+@click.option('--no-flat/--flat', default=True, help='Output on single line')
+def temps(no_flat):
     zone_temps = get_client().get_temperatures()
+    format = '{} {} {}\n' if no_flat else '{}:{}/{} '
+    output = [ ]
     for device in zone_temps:
         temp, setpoint = zone_temps[device]
-        print '{} {} {}'.format(device, temp, setpoint)
+        output.append(format.format(device, temp, setpoint))
+    print ''.join(output)
 
 if __name__ == '__main__':
     try:

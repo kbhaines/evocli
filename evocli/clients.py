@@ -24,8 +24,17 @@ class EvohomeControlClient(HeatingControlClient):
         self._password = password
         self._evohome = EvohomeClient(username, password)._get_single_heating_system()
 
+    def _find_real_zone_id(self, user_given_id):
+        zone_keys = { id.lower(): id for id in self._evohome.zones.keys() if id.lower().startswith(user_given_id) }
+        if len(zone_keys) == 0:
+            raise ZoneNotFoundException(user_given_id)
+        if len(zone_keys) > 1:
+            raise AmbiguousZoneId(user_given_id, zone_keys)
+        key, value = zone_keys.popitem()
+        return self._evohome.zones[value]
+
     def set_zone_temperature(self, zone_id, temperature, until=None):
-        zone = self._evohome.zones[zone_id]
+        zone = self._find_real_zone_id(zone_id)
         if temperature:
             zone.set_temperature(temperature, until)
         else:
@@ -49,3 +58,12 @@ class EvohomeControlClient(HeatingControlClient):
                     else (device['name'],device['setpoint'])
             results[name] = (device['temp'], setpoint)
         return results
+
+
+class ZoneNotFoundException(Exception):
+    pass
+
+
+class AmbiguousZoneId(Exception):
+    pass
+
