@@ -27,10 +27,10 @@ def get_client():
 def calculate_offset_time(minutes):
     if not minutes:
         return None
-    return datetime.now() + timedelta(0, minutes*60)
+    return datetime.utcnow() + timedelta(0, minutes*60)
 
 def calculate_until_time(hours, minutes):
-    now = datetime.now()
+    now = datetime.utcnow()
     time = datetime(2017,1,1,hours, minutes)
     end_time = datetime.combine(now.date(), time.time()) 
     if end_time < now:
